@@ -1,0 +1,17 @@
+Flask == 3.0.0
+pandas == 2.1.4
+Werkzeug==3.0.1
+aniso8601==9.0.1
+click==8.1.7
+Flask-RESTful==0.3.10
+Flask-SQLAlchemy==3.1.1
+flask-swagger-ui==4.11.1
+Flask-Cors==4.0.0
+pytz==2023.3.post1 #ถ้าอันนี้ไม่ใช่ก้ pip install pytz
+Jinja2==3.1.2
+pylint==3.0.3
+pylint-flask==0.6
+pylint-flask-sqlalchemy==0.2.0
+itsdangerous==2.1.2
+six==1.16.0
+SQLAlchemy==2.0.23
