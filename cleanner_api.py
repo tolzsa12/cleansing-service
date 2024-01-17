@@ -33,7 +33,7 @@ def removeIrrelevantData_check():
         #processed_data = {}
 
         #Respond with a JSON response
-        return jsonify(parsed),200
+        return json.dumps(parsed,ensure_ascii=False),200
     except Exception as e:
         #Respond with an error message if something goes wrong
         return jsonify({"error":str(e)}),400
@@ -60,7 +60,7 @@ def removeIrrelevantData_clean():
         #processed_data = {}
 
         #Respond with a JSON response
-        return jsonify(parsed), 200
+        return json.dumps(parsed,ensure_ascii=False), 200
     
     except Exception as e:
         #Respond with an error message if something goes wrong
@@ -79,6 +79,7 @@ def removeDuplicateData_check():
         # add logic here
 
         df = pd.DataFrame(data)
+        print(df.columns.values)
         df.insert(0,"st@tus",df.duplicated())
         df.replace({'st@tus':{True: "delete", False : "none"}},inplace=True)
         result = df.to_json(orient="records",index=False)
@@ -87,7 +88,7 @@ def removeDuplicateData_check():
         #processed_data = {}
 
         #Respond with a JSON response
-        return jsonify(parsed),200
+        return json.dumps(parsed,ensure_ascii=False),200
 
     except Exception as e:
         #Respond with an error message if something goes wrong
@@ -111,7 +112,7 @@ def removeDuplicateData_clean():
         parsed = json.loads(result)
 
         #Respond with a JSON response
-        return jsonify(parsed),200
+        return json.dumps(parsed,ensure_ascii=False),200
 
     except Exception as e:
         #Respond with an error message if something goes wrong
