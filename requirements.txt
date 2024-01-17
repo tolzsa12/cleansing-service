@@ -7,7 +7,6 @@ Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
 flask-swagger-ui==4.11.1
 Flask-Cors==4.0.0
-pytz==2023.3.post1 #ถ้าอันนี้ไม่ใช่ก้ pip install pytz
 Jinja2==3.1.2
 pylint==3.0.3
 pylint-flask==0.6
