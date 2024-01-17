@@ -65,6 +65,7 @@ def removeIrrelevantData_clean():
         #Respond with an error message if something goes wrong
         return jsonify({"error":str(e)}),400
 
+#function 2 removeduplicatedata
 @app.route('/removedupdata/check',methods = ['POST'])
 def removeDuplicateData_check():
     try:
