@@ -11,7 +11,7 @@ app.config['JSON_AS_ASCII'] = False
 #Route to handle JSON DATA
 @app.route('/')
 def index():
-    print()
+    print("hello, this is first page")
 @app.route('/removeirrdata/check',methods = ['POST'])
 def removeIrrelevantData_check():
     try:
@@ -120,7 +120,66 @@ def removeDuplicateData_clean():
         #Respond with an error message if something goes wrong
         return jsonify({"error":str(e)}),400
 
+# Function ที่ 3 Edit Inconsistant Data มีทั้งหมด 3 เส้น
+# พอเราคลิกเสร็จให้แสดงคอลัมน์ทุกอัน * เลือกได้แค่คอลัมน์เดียวเท่านั้น
+@app.route('/editincdata/',methods= ['GET'])
+def getAllUniqueValue():
+    try:
+        column = str(request.args.get('column'))
+        #data_set = {"columns",f'{column}'}
+        read_data = request.get_json()
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        df_unique = df[column].unique()
+        data_set = {"column" : df_unique.tolist()}
+        return json.dumps(data_set,ensure_ascii=False),200
+    
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+# อันนี้คือเป็นหน้าให้ผู้ใช้ยืนยัน
+@app.route('/editincdata/check',methods = ["POST"]) #ถามเฟ้นว่าทำแบบไหนง่ายกว่ากัน
+def editInconsistantData_check():
+    try:
+        column = str(request.args.get('column'))
+        #data_select, data_change รับมาจาก json ที่แนบมาละกัน
+        read_data = request.get_json()
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
+        data_select = read_data["data_set"]["data_select"]
+        data_change = read_data["data_set"]["data_change"]
+        df.insert(0,"st@tus",df[column] == data_select)
+        df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+        df[column].replace(data_select,data_change,inplace=True)
+        
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+#        #Respond with a JSON response
+        return json.dumps(parsed,ensure_ascii=False),200
+#อันนี้เป็นหน้าที่หลังจากยืนยันแล้ว
 #
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+#        
+@app.route('/editincdata/clean',methods = ["POST"])
+def editInconsistantData_clean():
+    try:
+        column = str(request.args.get('column'))
+        read_data = request.get_json()
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
+        data_select = read_data["data_set"]["data_select"]
+        data_change = read_data["data_set"]["data_change"]
+        df[column].replace(data_select,data_change,inplace=True)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+#        #Respond with a JSON response
+        return json.dumps(parsed,ensure_ascii=False),200
+    
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
 if __name__ == "__main__":
-    app.run(port=8080)
+    app.run(debug=True,port=8080)
 
