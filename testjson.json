@@ -53,9 +53,61 @@
         "calories": 6,
         "fat": 5,
         "carbs": 210
+      },
+      {
+        "id": 5,
+        "dessert": "ลอดช่อง",
+        "calories": 150,
+        "fat": 50,
+        "carbs": 100
+      },
+      {
+        "id": 6,
+        "dessert": "น้ำเต้าหู",
+        "calories": 200,
+        "fat": 78,
+        "carbs": 122
+      },
+      {
+        "id": 7,
+        "dessert": "น้ำตาล",
+        "calories": 300,
+        "fat": 95,
+        "carbs": 205
+      },
+      {
+        "id":8,
+        "dessert": "บิงซู",
+        "calories":545,
+        "fat": 300,
+        "carbs":245
+      },
+      {
+        "id":9,
+        "dessert":"ปังชา",
+        "calories": 150,
+        "fat" : 75,
+        "carbs" : 75
+      },
+      {
+        "id" : 10,
+        "dessert": "ชานมไข่มุก",
+        "calories": 450,
+        "fat" : 234,
+        "carbs" : 216
+      },
+      {
+        "id" : 11,
+        
+        "calories": 450,
+        "fat" : 234,
+        "carbs" : 216
       }
+
+      
     ],
 
-    "columns_match" : ["id", "dessert"]
+    "columns_match" : ["id", "dessert"],
+    "order": "mean"
   }
 }

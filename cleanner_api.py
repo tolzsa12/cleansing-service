@@ -2,9 +2,14 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
 import json
+from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
+import statistics as stat
+
 app = Flask(__name__)
 CORS(app)
 app.config['JSON_AS_ASCII'] = False
+
+# ทดลองใช้ SwaggerUI 
 
 # ให้เฟ้นสอนเชื่อมดาต้าเบสให้หน่อย 
 # Function 1 :RemoveIrrelevantData
@@ -122,12 +127,14 @@ def removeDuplicateData_clean():
 
 # Function ที่ 3 Edit Inconsistant Data มีทั้งหมด 3 เส้น
 # พอเราคลิกเสร็จให้แสดงคอลัมน์ทุกอัน * เลือกได้แค่คอลัมน์เดียวเท่านั้น
-@app.route('/editincdata/',methods= ['GET'])
+@app.route('/editincdata',methods= ['GET']) 
 def getAllUniqueValue():
     try:
-        column = str(request.args.get('column'))
+        #column = str(request.args.get('column'))
+       
         #data_set = {"columns",f'{column}'}
         read_data = request.get_json()
+        column = read_data["data_set"]["columns_match"]
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
         df_unique = df[column].unique()
@@ -140,9 +147,13 @@ def getAllUniqueValue():
 @app.route('/editincdata/check',methods = ["POST"]) #ถามเฟ้นว่าทำแบบไหนง่ายกว่ากัน
 def editInconsistantData_check():
     try:
-        column = str(request.args.get('column'))
+       
         #data_select, data_change รับมาจาก json ที่แนบมาละกัน
         read_data = request.get_json()
+         #column = str(request.args.get('column'))
+        # อันนี้รับมาแค่ column เดียวเท่านั้น
+        column = read_data["data_set"]["columns_match"]
+
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
         #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
@@ -164,8 +175,12 @@ def editInconsistantData_check():
 @app.route('/editincdata/clean',methods = ["POST"])
 def editInconsistantData_clean():
     try:
-        column = str(request.args.get('column'))
+        #column = str(request.args.get('column'))
+        # อันนี้รับมาแค่ column เดียวเท่านั้น
         read_data = request.get_json()
+         #column = str(request.args.get('column'))
+        # อันนี้รับมาแค่ column เดียวเท่านั้น
+        column = read_data["data_set"]["columns_match"]
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
         #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
@@ -180,6 +195,160 @@ def editInconsistantData_clean():
     
     except Exception as e:
         return jsonify({"error":str(e)}),400
+# Function ที่ 4 Managing Na Value
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
+def isint(num):
+    try:
+        int(num)
+        return True
+    except ValueError:
+        return False
+# api เส้นที่ 4 manageNaValue
+@app.route('/managenavalue/check',methods = ["POST"])
+def manageNaValue_check():
+    try:
+        read_data = request.get_json()
+        columns_match = read_data["data_set"]["columns_match"] #เลือกคอลัมน์อะไร
+        data = read_data["data_set"]["rows"]
+        order_select = read_data["data_set"]["order_select"] #เลือกคำสั่งอะไร
+
+        df = pd.DataFrame(data)
+        if order_select == "mean":
+        # เราต้องเช็ค NA ตรงนี้
+            df.insert(0,"st@tus",df[columns_match].isna().any(axis=1))
+            df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+            for col in columns_match:
+                if (is_numeric_dtype(df[col])):
+                    mean_value = df[col].mean()
+                     #print(mean_value)
+                    df[col] = df[col].fillna(mean_value)
+                else:
+                    mean_value = df[col].mode()[0]
+                    df[col] = df[col].fillna(mean_value)
+
+        elif order_select == "median":
+        # เราต้องเช็ค NA ตรงนี้
+            df.insert(0,"st@tus",df[columns_match].isna().any(axis=1))
+            df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+            for col in columns_match:
+                if (is_numeric_dtype(df[col])):
+                    median_value = stat.median(df[col])
+                     #print(mean_value)
+                    df[col] = df[col].fillna(median_value)
+                else: #ใช้แบบเดียวกับ mean ไปเลย
+                    mean_value = df[col].mode()[0]
+                    df[col] = df[col].fillna(mean_value)
+
+        elif order_select == "remove":
+             # อันนี้เช็ค NA ยาก
+            remove_from_list = []
+            for col in columns_match:
+                nan_count = df[col].isna().sum() #นับจำนวน nan ทั้งหมดใน dataframe
+                print(nan_count)
+                print(len(df)) # อันนี้ไว้นับจำนวนทั้งหมด
+                #กรองก่อน เหลืออันไหนที่ทำได้ เราทำให้หมดเลย
+                if(nan_count / len(df) > 0.1):
+                    remove_from_list = remove_from_list + [col]
+            for col in remove_from_list:
+                columns_match.remove(col)
+            df.insert(0,"st@tus",df[columns_match].isna().any(axis=1))
+            df.replace({'st@tus':{True: "delete", False : "none"}},inplace=True)
+            
+        else:
+            # check NA ตรงนี้
+            df.insert(0,"st@tus",df[columns_match].isna().any(axis=1))
+            df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+            if (isint(order_select)):
+                for col in columns_match:
+                    df[col] = df[col].fillna(int(order_select))
+            elif (isfloat(order_select)):
+                for col in columns_match:
+                    df[col] = df[col].fillna(float(order_select))
+            else:
+                for col in columns_match:
+                    df[col] = df[col].fillna(order_select)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+
+        return json.dumps(parsed,ensure_ascii=False),200
+
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+            
+
+
+
+
+
+
+@app.route('/managenavalue/clean',methods = ["POST"])
+def manageNaValue_clean():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"] #เลือกคอลัมน์อะไร
+        data = read_data["data_set"]["rows"]
+        order_select = read_data["data_set"]["order_select"] #เลือกคำสั่งอะไร
+
+        df = pd.DataFrame(data)
+        # order_select มี 4 ตัว mean median remove และอื่นๆ (เติมค่าที่กรอกนั่นละ)
+        if order_select == "mean":
+            for col in columns_match:
+                if (is_numeric_dtype(df[col])):
+                    mean_value = df[col].mean()
+                     #print(mean_value)
+                    df[col] = df[col].fillna(mean_value)
+                else:
+                    mean_value = df[col].mode()[0]
+                    df[col] = df[col].fillna(mean_value)
+            
+        elif order_select == "median":
+            for col in columns_match:
+                if (is_numeric_dtype(df[col])):
+                    median_value = stat.median(df[col])
+                     #print(mean_value)
+                    df[col] = df[col].fillna(median_value)
+                else: #ใช้แบบเดียวกับ mean ไปเลย
+                    mean_value = df[col].mode()[0]
+                    df[col] = df[col].fillna(mean_value)
+        elif order_select == "remove":
+             for col in columns_match:
+                 nan_count = df[col].isna().sum() # อันนี้เพื่อนับจำนวน  nan ทั้งหมด ในdataframe
+                 print(nan_count)
+                 print(len(df)) # อันนี้ไว้นับจำนวนทั้งหมด
+                 if (nan_count / len(df) <= 0.1):
+                     df = df[df[col].notna()]
+        else:
+            if (isint(order_select)):
+                for col in columns_match:
+                    df[col] = df[col].fillna(int(order_select))
+            elif (isfloat(order_select)):
+                for col in columns_match:
+                    df[col] = df[col].fillna(float(order_select))
+            else:
+                for col in columns_match:
+                    df[col] = df[col].fillna(order_select)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+        
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+
+
+
+
+
+
 if __name__ == "__main__":
     app.run(debug=True,port=8080)
 
