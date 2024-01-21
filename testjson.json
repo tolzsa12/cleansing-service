@@ -24,90 +24,102 @@
         "dessert": "น้ำตาล",
         "calories": 2,
         "fat": 2,
-        "carbs": 122
+        "carbs": 122,
+        "type" : "วัตถุดิบ"
       },
       {
         "id": 2,
         "dessert": "ขนมปังหวาน",
         "calories": 2,
         "fat": 2,
-        "carbs": 122
+        "carbs": 122,
+        "type" : "ขนมร้อน"
       },
       {
         "id": 3,
         "dessert": "ลอดช่อง",
         "calories": 2,
         "fat": 2,
-        "cards": 22
+        "cards": 22,
+        "type" : "ขนมถ้วย"
       },
       {
         "id": 1,
         "dessert": "น้ำตาล",
         "calories": 2,
         "fat": 2,
-        "carbs": 122
+        "carbs": 122,
+        "type" : "วัตถุดิบ"
       },
       {
         "id": 4,
         "dessert": "น้ำตล",
         "calories": 6,
         "fat": 5,
-        "carbs": 210
+        "carbs": 210,
+        "type" : "วัตถุดิบ"
       },
       {
         "id": 5,
         "dessert": "ลอดช่อง",
         "calories": 150,
         "fat": 50,
-        "carbs": 100
+        "carbs": 100,
+        "type" : "ขนมเย็น"
       },
       {
         "id": 6,
         "dessert": "น้ำเต้าหู",
         "calories": 200,
         "fat": 78,
-        "carbs": 122
+        "carbs": 122,
+        "type" : "น้ำหวาน"
       },
       {
         "id": 7,
         "dessert": "น้ำตาล",
         "calories": 300,
         "fat": 95,
-        "carbs": 205
+        "carbs": 205,
+        "type" : "วัตถุดิบ"
       },
       {
         "id":8,
         "dessert": "บิงซู",
         "calories":545,
         "fat": 300,
-        "carbs":245
+        "carbs":245,
+        "type" : "ขนมนม"
       },
       {
         "id":9,
         "dessert":"ปังชา",
         "calories": 150,
         "fat" : 75,
-        "carbs" : 75
+        "carbs" : 75,
+        "type" : "ขนมแพง"
       },
       {
         "id" : 10,
         "dessert": "ชานมไข่มุก",
         "calories": 450,
         "fat" : 234,
-        "carbs" : 216
+        "carbs" : 216,
+        "type" : "น้ำหวาน"
       },
       {
         "id" : 11,
         
         "calories": 450,
         "fat" : 234,
-        "carbs" : 216
+        "carbs" : 216,
+        "type" : "วัตถุดิบ"
       }
 
       
     ],
 
-    "columns_match" : ["id", "dessert"],
+    "columns_match" : ["type", "dessert"],
     "order": "mean"
   }
 }

@@ -4,6 +4,7 @@ import pandas as pd
 import json
 from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 import statistics as stat
+import numpy as np
 
 app = Flask(__name__)
 CORS(app)
@@ -345,9 +346,72 @@ def manageNaValue_clean():
         return jsonify({"error":str(e)}),400
 
 
+## Function ที่ 6 Replace Excess Categories with “Other”) 
+@app.route('/replaceexcdata/check',methods = ["POST"])
+def replaceExcData_check():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"] #เลือกคอลัมน์อะไร
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        
+        #เก็บค่า index เอาไว้มั้ย แล้วเราค่อยเอามาเพิ่ม + แปลงให้เป็น set ก่อน เพื่อตัดตัวซ้ำทิ้ง
+        #indices = [0,1,3,6,10,15]
+        #df.loc[indices,'A'] = 16
+        status_index = []
+        for col in columns_match:
+            if not (is_numeric_dtype(df[col])):
+                values, counts = np.unique(list(df[col].dropna()),return_counts= True)
+                count_sort_ind = np.argsort(-counts)
+
+                list_unique = values[count_sort_ind] 
+                list_keep = list_unique[0:5]  # จะเอากี่อันก็เปลี่ยนเลข 5 เป็นเลขอื่นเอา
+             
+                status_index = status_index + np.flatnonzero(~df[col].isin(list_keep)).tolist()
+                df.loc[~df[col].isin(list_keep),col] = "อื่น ๆ" 
+                #df.insert(0,"st@tus",~df[col].isin(list_keep))
+                #  เก็บเป็นเซ็ตมั้ย ว่า index ไหนต้องเปลี่ยน
+        
+        status_index = list(set(status_index))
+        df.loc[df.index.isin(status_index), 'st@tus'] = True
+        df.loc[~df.index.isin(status_index), 'st@tus'] = False
+        df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
 
 
+@app.route('/replaceexcdata/clean',methods = ["POST"])
+def replaceExcData_clean():
+    try:
+        read_data = request.get_json()
 
+        columns_match = read_data["data_set"]["columns_match"] #เลือกคอลัมน์อะไร
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        
+        #ถ้าสมมุติสร้าง column มาเก็บ true กับ false แล้วสุดท้ายแล้วเอาทุกตัวมา .any() ได้มั้ยอ่ะ
+        for col in columns_match:
+            if not (is_numeric_dtype(df[col])):
+                values, counts = np.unique(list(df[col].dropna()),return_counts= True)
+                count_sort_ind = np.argsort(-counts)
+                list_unique = values[count_sort_ind] 
+                list_keep = list_unique[0:5]  
+                df.loc[~df[col].isin(list_keep),col] = "อื่น ๆ" 
+               
+        
+        
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
 
 if __name__ == "__main__":
     app.run(debug=True,port=8080)
