@@ -428,6 +428,58 @@ def replaceExcData_clean():
 
     except Exception as e:
         return jsonify({"error":str(e)}),400
+    
+## Function ที่ 7 ลบข้อมูลที่ไม่ใช่ตัวเลขออก Remove Unreadable Numbers
+@app.route('/removeunrnumber/check', methods = ["POST"])
+def removeUnreadableNumbers_check():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+
+        #
+        df.insert(0,"st@tus",False)
+        for col in columns_match:
+            if (is_object_dtype(df[col])):
+                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: isinstance(x,(int,float,bool)))
+                #print(col)
+        df.replace({'st@tus':{True: "none", False : "delete"}},inplace=True)
+                
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error" : str(e)}),400
+
+
+@app.route('/removeunrnumber/clean',methods = ["POST"])
+def removeUnreadableNumbers_clean():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+
+        for col in columns_match:
+            if (is_object_dtype(df[col])):
+                
+                index_delete = df[~df[col].apply(lambda x: isinstance(x,(int,float,bool)))].index
+                df.drop(index_delete,inplace=True)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+                
+        
+    
+    except Exception as e:
+        return jsonify({"error": str(e) }),400
+
+
 
 if __name__ == "__main__":
     app.run(debug=True,port=8080)
