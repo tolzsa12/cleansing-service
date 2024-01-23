@@ -127,8 +127,20 @@ def removeDuplicateData_clean():
         return jsonify({"error":str(e)}),400
 
 # Function ที่ 3 Edit Inconsistant Data มีทั้งหมด 3 เส้น
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
+def isint(num):
+    try:
+        int(num)
+        return True
+    except ValueError:
+        return False
 # พอเราคลิกเสร็จให้แสดงคอลัมน์ทุกอัน * เลือกได้แค่คอลัมน์เดียวเท่านั้น
-@app.route('/editincdata',methods= ['GET']) 
+@app.route('/editincdata',methods= ['POST']) 
 def getAllUniqueValue():
     try:
         #column = str(request.args.get('column'))
@@ -160,6 +172,14 @@ def editInconsistantData_check():
         #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
         data_select = read_data["data_set"]["data_select"]
         data_change = read_data["data_set"]["data_change"]
+
+        # ลองเปลี่ยนค่า input ที่เข้ามาเป็นตัวเลข
+        if (isint(data_change)):
+            data_change = int(data_change)
+        elif (isfloat(data_change)):
+            data_change = float(data_change)
+
+
         df.insert(0,"st@tus",df[column] == data_select)
         df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
         df[column].replace(data_select,data_change,inplace=True)
@@ -187,6 +207,12 @@ def editInconsistantData_clean():
         #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
         data_select = read_data["data_set"]["data_select"]
         data_change = read_data["data_set"]["data_change"]
+
+         # ลองเปลี่ยนค่า input ที่เข้ามาเป็นตัวเลข
+        if (isint(data_change)):
+            data_change = int(data_change)
+        elif (isfloat(data_change)):
+            data_change = float(data_change)
         df[column].replace(data_select,data_change,inplace=True)
 
         result = df.to_json(orient="records",index=False)
@@ -197,18 +223,7 @@ def editInconsistantData_clean():
     except Exception as e:
         return jsonify({"error":str(e)}),400
 # Function ที่ 4 Managing Na Value
-def isfloat(num):
-    try:
-        float(num)
-        return True
-    except ValueError:
-        return False
-def isint(num):
-    try:
-        int(num)
-        return True
-    except ValueError:
-        return False
+
 # api เส้นที่ 4 manageNaValue
 @app.route('/managenavalue/check',methods = ["POST"])
 def manageNaValue_check():
@@ -217,6 +232,7 @@ def manageNaValue_check():
         columns_match = read_data["data_set"]["columns_match"] #เลือกคอลัมน์อะไร
         data = read_data["data_set"]["rows"]
         order_select = read_data["data_set"]["order_select"] #เลือกคำสั่งอะไร
+
 
         df = pd.DataFrame(data)
         if order_select == "mean":
