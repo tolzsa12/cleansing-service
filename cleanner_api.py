@@ -504,6 +504,8 @@ def flagOutliers_check():
                 df.replace({col_isoutlier:{True: 1, False : 0}},inplace=True)
                 #no_outliers = df.drop(outlier_indices)
                 df.drop(columns=col_zscore,inplace=True)
+                col_index = df.columns.tolist().index(col)
+                df.insert(col_index+1, col_isoutlier, df.pop(col_isoutlier))
                 df["st@tus"] = "edit"
 
         result = df.to_json(orient="records",index=False)
@@ -535,6 +537,8 @@ def flagOutliers_clean():
                 df[col_isoutlier] = df[col_zscore] > z_treshold
                 df.replace({col_isoutlier:{True: 1, False : 0}},inplace=True)
                 df.drop(columns=col_zscore,inplace=True)
+                col_index = df.columns.tolist().index(col)
+                df.insert(col_index+1, col_isoutlier, df.pop(col_isoutlier))
 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
