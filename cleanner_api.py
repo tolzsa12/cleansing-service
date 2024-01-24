@@ -479,8 +479,69 @@ def removeUnreadableNumbers_clean():
     except Exception as e:
         return jsonify({"error": str(e) }),400
 
+# Function ที่ 8 Flag Outlier ระบุค่าผิดปกติทางสถิติ
+@app.route('/flagoutlier/check',methods = ["POST"])
+def flagOutliers_check():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+
+        df.insert(0,"st@tus","none")
+
+        for col in columns_match:
+            if(is_numeric_dtype(df[col])):
+                col_zscore = col + '_zscore'
+                col_isoutlier = col + '_isoutlier'
+                df[col_zscore] = np.abs((df[col] - df[col].mean())/df[col].std(ddof=0))
+                # ไปหาเพิ่มเติมว่า ddof คืออะไร ส่งผลต่อการคำนวณมั้ย
+                #เพื่อทดสอบว่ามันทำงานได้มั้ย เรา จะ set treshold ไว้ที่ 1 ก่อน แต่โดยปกติแล้วเรามักจะใช้ 3 นะ
+                z_treshold = 1
+                #outlier_indices = np.where(df[col_zscore] > z_treshold)[0]
+                df[col_isoutlier] = df[col_zscore] > z_treshold
+                df.replace({col_isoutlier:{True: 1, False : 0}},inplace=True)
+                #no_outliers = df.drop(outlier_indices)
+                df.drop(columns=col_zscore,inplace=True)
+                df["st@tus"] = "edit"
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}),400
 
 
+@app.route('/flagoutlier/clean',methods = ["POST"])
+def flagOutliers_clean():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+
+        for col in columns_match:
+            if(is_numeric_dtype(df[col])):
+                col_zscore = col + '_zscore'
+                col_isoutlier = col + '_isoutlier'
+                df[col_zscore] = np.abs((df[col]- df[col].mean())/df[col].std(ddof=0))
+
+                #เพื่อทดสอบว่ามันทำงานได้มั้ย เรา จะ set treshold ไว้ที่ 1 ก่อน แต่โดยปกติแล้วเรามักจะใช้ 3 นะ
+                z_treshold = 1
+
+                df[col_isoutlier] = df[col_zscore] > z_treshold
+                df.replace({col_isoutlier:{True: 1, False : 0}},inplace=True)
+                df.drop(columns=col_zscore,inplace=True)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}),400
 if __name__ == "__main__":
     app.run(debug=True,port=8080)
 

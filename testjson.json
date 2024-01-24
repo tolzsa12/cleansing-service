@@ -46,7 +46,7 @@
       {
         "id": 1,
         "dessert": "น้ำตาล",
-        "calories": 2,
+        "calories": 890,
         "fat": 2,
         "carbs": 122,
         "type" : "วัตถุดิบ"
@@ -54,7 +54,7 @@
       {
         "id": 4,
         "dessert": "น้ำตล",
-        "calories": 6,
+        "calories": 350,
         "fat": 5,
         "carbs": 210,
         "type" : "วัตถุดิบ"
@@ -62,7 +62,7 @@
       {
         "id": 5,
         "dessert": "ลอดช่อง",
-        "calories": 150,
+        "calories": 400,
         "fat": 50,
         "carbs": 100,
         "type" : "ขนมเย็น"
@@ -110,7 +110,7 @@
       {
         "id" : 11,
         
-        "calories": 450,
+        "calories": 700,
         "fat" : 234,
         "carbs" : 216.65,
         "type" : "วัตถุดิบ"
