@@ -182,8 +182,8 @@ def editInconsistantData_check():
 
         df.insert(0,"st@tus",df[column] == data_select)
         df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
-        df[column].replace(data_select,data_change,inplace=True)
-        
+        #df[column].replace(data_select,data_change,inplace=True)
+        df.replace({column : {data_select: data_change}},inplace=True)
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
 #        #Respond with a JSON response
@@ -213,7 +213,7 @@ def editInconsistantData_clean():
             data_change = int(data_change)
         elif (isfloat(data_change)):
             data_change = float(data_change)
-        df[column].replace(data_select,data_change,inplace=True)
+        df.replace({column : {data_select: data_change}},inplace=True)
 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
