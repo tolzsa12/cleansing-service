@@ -165,7 +165,7 @@ def editInconsistantData_check():
         read_data = request.get_json()
          #column = str(request.args.get('column'))
         # อันนี้รับมาแค่ column เดียวเท่านั้น
-        column = read_data["data_set"]["columns_match"]
+        columns = read_data["data_set"]["columns_match"]
 
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
@@ -179,11 +179,12 @@ def editInconsistantData_check():
         elif (isfloat(data_change)):
             data_change = float(data_change)
 
-
-        df.insert(0,"st@tus",df[column] == data_select)
+        
+        df.insert(0,"st@tus",df[columns] == data_select)
         df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
         #df[column].replace(data_select,data_change,inplace=True)
-        df.replace({column : {data_select: data_change}},inplace=True)
+        for col in columns:
+            df.replace({col : {data_select: data_change}},inplace=True)
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
 #        #Respond with a JSON response
@@ -201,7 +202,7 @@ def editInconsistantData_clean():
         read_data = request.get_json()
          #column = str(request.args.get('column'))
         # อันนี้รับมาแค่ column เดียวเท่านั้น
-        column = read_data["data_set"]["columns_match"]
+        columns = read_data["data_set"]["columns_match"]
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
         #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
@@ -213,7 +214,8 @@ def editInconsistantData_clean():
             data_change = int(data_change)
         elif (isfloat(data_change)):
             data_change = float(data_change)
-        df.replace({column : {data_select: data_change}},inplace=True)
+        for col in columns:
+            df.replace({col : {data_select: data_change}},inplace=True)
 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
