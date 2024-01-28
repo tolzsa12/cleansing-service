@@ -446,9 +446,9 @@ def removeUnreadableNumbers_check():
         for col in columns_match:
             if (is_object_dtype(df[col])):
                 df.loc[:,col] = df[col].apply(lambda x: float(x) if isfloat(x) else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
-                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: isinstance(x,(int,float,bool)))
+                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: not isinstance(x,(int,float,bool)))
                 #print(col)
-        df.replace({'st@tus':{True: "none", False : "delete"}},inplace=True)
+        df.replace({'st@tus':{True: "delete", False : "none"}},inplace=True)
                 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
