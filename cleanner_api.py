@@ -497,17 +497,17 @@ def flagOutliers_check():
 
         for col in columns_match:
             if(is_numeric_dtype(df[col])):
-                col_zscore = col + '_zscore'
+                
                 col_isoutlier = col + '_isoutlier'
-                df[col_zscore] = np.abs((df[col] - df[col].mean())/df[col].std(ddof=0))
+                Q1 = df[col].quantile(0.25)
+                Q3 = df[col].quantile(0.75)
+                IQR = Q3 - Q1
                 # ไปหาเพิ่มเติมว่า ddof คืออะไร ส่งผลต่อการคำนวณมั้ย
                 #เพื่อทดสอบว่ามันทำงานได้มั้ย เรา จะ set treshold ไว้ที่ 1 ก่อน แต่โดยปกติแล้วเรามักจะใช้ 3 นะ
-                z_treshold = 1
+                df[col_isoutlier] = df[col].apply(lambda x: (x < (Q1 - 1.5* IQR)) | (x > (Q3 + 1.5 *IQR)))
                 #outlier_indices = np.where(df[col_zscore] > z_treshold)[0]
-                df[col_isoutlier] = df[col_zscore] > z_treshold
                 df.replace({col_isoutlier:{True: 1, False : 0}},inplace=True)
                 #no_outliers = df.drop(outlier_indices)
-                df.drop(columns=col_zscore,inplace=True)
                 col_index = df.columns.tolist().index(col)
                 df.insert(col_index+1, col_isoutlier, df.pop(col_isoutlier))
                 df["st@tus"] = "edit"
@@ -531,16 +531,15 @@ def flagOutliers_clean():
 
         for col in columns_match:
             if(is_numeric_dtype(df[col])):
-                col_zscore = col + '_zscore'
+                
                 col_isoutlier = col + '_isoutlier'
-                df[col_zscore] = np.abs((df[col]- df[col].mean())/df[col].std(ddof=0))
-
+                Q1 = df[col].quantile(0.25)
+                Q3 = df[col].quantile(0.75)
+                IQR = Q3 - Q1
                 #เพื่อทดสอบว่ามันทำงานได้มั้ย เรา จะ set treshold ไว้ที่ 1 ก่อน แต่โดยปกติแล้วเรามักจะใช้ 3 นะ
-                z_treshold = 1
-
-                df[col_isoutlier] = df[col_zscore] > z_treshold
+                df[col_isoutlier] = df[col].apply(lambda x: (x < (Q1 - 1.5* IQR)) | (x > (Q3 + 1.5 *IQR)))
                 df.replace({col_isoutlier:{True: 1, False : 0}},inplace=True)
-                df.drop(columns=col_zscore,inplace=True)
+                
                 col_index = df.columns.tolist().index(col)
                 df.insert(col_index+1, col_isoutlier, df.pop(col_isoutlier))
 
