@@ -445,6 +445,7 @@ def removeUnreadableNumbers_check():
         df.insert(0,"st@tus",False)
         for col in columns_match:
             if (is_object_dtype(df[col])):
+                df.loc[:,col] = df[col].apply(lambda x: float(x) if isfloat(x) else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
                 df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: isinstance(x,(int,float,bool)))
                 #print(col)
         df.replace({'st@tus':{True: "none", False : "delete"}},inplace=True)
@@ -469,6 +470,7 @@ def removeUnreadableNumbers_clean():
         for col in columns_match:
             if (is_object_dtype(df[col])):
                 
+                df.loc[:,col] = df[col].apply(lambda x: float(x) if isfloat(x) else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
                 index_delete = df[~df[col].apply(lambda x: isinstance(x,(int,float,bool)))].index
                 df.drop(index_delete,inplace=True)
 
