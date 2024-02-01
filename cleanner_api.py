@@ -612,8 +612,8 @@ def removeOutlier_clean():
         return jsonify({"error": str(e)}),400
 
 #Function ที่ 10 Clamp Outlier ตัดค่าผิดปกติไปอยู่ตรง
-@app.route('/clampoutlier/check',methods = ["POST"])
-def clampOutlier_check():
+@app.route('/changeoutlier/check',methods = ["POST"])
+def changeOutlier_check():
     try:
         read_data = request.get_json()
 
@@ -663,8 +663,8 @@ def clampOutlier_check():
         return jsonify({"error": str(e)}),400
     
 
-@app.route('/clampoutlier/clean',methods = ["POST"])
-def clampOutlier_clean():
+@app.route('/changeoutlier/clean',methods = ["POST"])
+def changeOutlier_clean():
     try:
         read_data = request.get_json()
 
