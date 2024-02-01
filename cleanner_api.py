@@ -529,6 +529,7 @@ def flagOutliers_clean():
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
 
+        
         for col in columns_match:
             if(is_numeric_dtype(df[col])):
                 
@@ -549,6 +550,164 @@ def flagOutliers_clean():
 
     except Exception as e:
         return jsonify({"error": str(e)}),400
+    
+#Function ที่ 9 Remove Outlier เอาที่ผิดปกติออก
+@app.route('/removeoutlier/check',methods = ["POST"])
+def removeOutlier_check():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+
+        df.insert(0,"st@tus",False)
+        for col in columns_match:
+            if (is_numeric_dtype(df[col])):
+                #col_zscore = col + ''
+                #col_isoutlier = col + '_isoutlier'
+                Q1 = df[col].quantile(0.25)
+                Q3 = df[col].quantile(0.75)
+                IQR = Q3 - Q1
+
+                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
+        
+        df.replace({'st@tus':{True: "delete", False : "none"}},inplace=True)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}),400
+    
+@app.route('/removeoutlier/clean',methods = ["POST"])
+def removeOutlier_clean():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data) 
+        
+        df.insert(0,"st@tus",False)
+        for col in columns_match:
+            if (is_numeric_dtype(df[col])):
+                #col_zscore = col + ''
+                #col_isoutlier = col + '_isoutlier'
+                Q1 = df[col].quantile(0.25)
+                Q3 = df[col].quantile(0.75)
+                IQR = Q3 - Q1
+
+                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
+
+        df = df[~df["st@tus"]]
+        df.drop("st@tus",axis= 1,inplace=True)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}),400
+
+#Function ที่ 10 Clamp Outlier ตัดค่าผิดปกติไปอยู่ตรง
+@app.route('/clampoutlier/check',methods = ["POST"])
+def clampOutlier_check():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        order_select = read_data["data_set"]["order_select"] #เลือกคำสั่งอะไร
+
+        df.insert(0,"st@tus",False)
+        if order_select == "clamp":
+        
+            for col in columns_match:
+                if (is_numeric_dtype(df[col])):
+               
+                    Q1 = df[col].quantile(0.25)
+                    Q3 = df[col].quantile(0.75)
+                    IQR = Q3 - Q1
+
+                    df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
+                    df.loc[df[col] < (Q1 - 1.5* IQR),col] = Q1 - 1.5 * IQR
+                    df.loc[df[col] > (Q3 + 1.5* IQR),col] = Q3 + 1.5 * IQR
+
+        else:
+            if (isint(order_select)):
+                order_select = int(order_select)
+            elif (isfloat(order_select)):
+                order_select = float(order_select)
+
+            for col in columns_match:
+                 if (is_numeric_dtype(df[col])):
+
+                    Q1 = df[col].quantile(0.25)
+                    Q3 = df[col].quantile(0.75)
+                    IQR = Q3 - Q1
+
+                    df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
+                    df.loc[df[col] < (Q1 - 1.5* IQR),col] = order_select
+                    df.loc[df[col] > (Q3 + 1.5* IQR),col] = order_select                  
+
+        df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}),400
+    
+
+@app.route('/clampoutlier/clean',methods = ["POST"])
+def clampOutlier_clean():
+    try:
+        read_data = request.get_json()
+
+        columns_match = read_data["data_set"]["columns_match"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data) 
+        order_select = read_data["data_set"]["order_select"] #เลือกคำสั่งอะไร
+
+        if order_select == "clamp":
+        
+            for col in columns_match:
+                if (is_numeric_dtype(df[col])):
+                    Q1 = df[col].quantile(0.25)
+                    Q3 = df[col].quantile(0.75)
+                    IQR = Q3 - Q1
+
+                    df.loc[df[col] < (Q1 - 1.5* IQR),col] = Q1 - 1.5 * IQR
+                    df.loc[df[col] > (Q3 + 1.5* IQR),col] = Q3 + 1.5 * IQR         
+
+        else:
+            if (isint(order_select)):
+                order_select = int(order_select)
+            elif (isfloat(order_select)):
+                order_select = float(order_select)
+
+            for col in columns_match:
+                 if (is_numeric_dtype(df[col])):
+
+                    Q1 = df[col].quantile(0.25)
+                    Q3 = df[col].quantile(0.75)
+                    IQR = Q3 - Q1
+
+
+                    df.loc[df[col] < (Q1 - 1.5* IQR),col] = order_select
+                    df.loc[df[col] > (Q3 + 1.5* IQR),col] = order_select    
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+
 if __name__ == "__main__":
     app.run(debug=True,port=8080)
 
