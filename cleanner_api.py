@@ -363,6 +363,68 @@ def manageNaValue_clean():
     except Exception as e:
         return jsonify({"error":str(e)}),400
 
+## Function ที่ 5 Split Columns แยกคอลัมน์
+@app.route('/splitcolumn/check',methods = ["POST"])
+def splitColumn_check():
+    try:
+        # อาจจะมีการแบ่งเป็น String อย่างเดียวหรือว่าจะให้สามารถแบ่งจุดทศนิยมออกด้วยดีไหมนะ
+        
+        read_data = request.get_json()
+
+        column_match = read_data["data_set"]["columns_match"] #เลือกคอลัมน์อะไร
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        column_1 = read_data["data_set"]["column_1"]
+        column_2 = read_data["data_set"]["column_2"]
+        delimeter = read_data["data_set"]["delimeter"]
+
+        df.insert(0,"st@tus",False)
+        if (not is_numeric_dtype(df[column_match])):
+            df[[column_1,column_2]] = df[column_match].str.split(delimeter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            col_index = df.columns.tolist().index(column_match)
+            df.insert(col_index+1,column_1,df.pop(column_1))
+            df.insert(col_index+2,column_2,df.pop(column_2))
+            df["st@tus"] = True
+        df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+
+        
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+        
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+    
+
+@app.route('/splitcolumn/clean',methods = ["POST"])
+def splitColumn_clean():
+
+    try:
+        read_data = request.get_json()
+
+        column_match = read_data["data_set"]["columns_match"] #เลือกคอลัมน์อะไร
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+        column_1 = read_data["data_set"]["column_1"]
+        column_2 = read_data["data_set"]["column_2"]
+        delimeter = read_data["data_set"]["delimeter"]
+
+        if (not is_numeric_dtype(df[column_match])):
+            df[[column_1,column_2]] = df[column_match].str.split(delimeter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            col_index = df.columns.tolist().index(column_match)
+            df.insert(col_index+1,column_1,df.pop(column_1))
+            df.insert(col_index+2,column_2,df.pop(column_2))
+        
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+        
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+
+
 
 ## Function ที่ 6 Replace Excess Categories with “Other”) 
 @app.route('/replaceexcdata/check',methods = ["POST"])
