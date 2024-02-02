@@ -376,11 +376,11 @@ def splitColumn_check():
         df = pd.DataFrame(data)
         column_1 = read_data["data_set"]["column_1"]
         column_2 = read_data["data_set"]["column_2"]
-        delimeter = read_data["data_set"]["delimeter"]
+        delimiter = read_data["data_set"]["delimiter"]
 
         df.insert(0,"st@tus",False)
         if (not is_numeric_dtype(df[column_match])):
-            df[[column_1,column_2]] = df[column_match].str.split(delimeter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
             col_index = df.columns.tolist().index(column_match)
             df.insert(col_index+1,column_1,df.pop(column_1))
             df.insert(col_index+2,column_2,df.pop(column_2))
@@ -408,10 +408,10 @@ def splitColumn_clean():
         df = pd.DataFrame(data)
         column_1 = read_data["data_set"]["column_1"]
         column_2 = read_data["data_set"]["column_2"]
-        delimeter = read_data["data_set"]["delimeter"]
+        delimiter = read_data["data_set"]["delimiter"]
 
         if (not is_numeric_dtype(df[column_match])):
-            df[[column_1,column_2]] = df[column_match].str.split(delimeter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
             col_index = df.columns.tolist().index(column_match)
             df.insert(col_index+1,column_1,df.pop(column_1))
             df.insert(col_index+2,column_2,df.pop(column_2))
