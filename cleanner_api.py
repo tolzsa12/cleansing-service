@@ -424,6 +424,50 @@ def splitColumn_clean():
     except Exception as e:
         return jsonify({"error":str(e)}),400
 
+### Function ที่ 5.5  Join columns
+
+@app.route('/joincolumns/check',methods =["POST"])
+def joinColumns_check():
+    try:
+        read_data = request.get_json()
+
+        columns_match1 = read_data["data_set"]["columns_match1"] #เลือกคอลัมน์อะไร
+        columns_match2 = read_data["data_set"]["columns_match2"]
+        delimiter = read_data["data_set"]["delimiter"]
+        column_new = read_data["data_set"]["column_new"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+
+        df[column_new] = df[columns_match1].astype(str) + delimiter + df[columns_match2].astype(str)
+        df.insert(0,"st@tus","edit")
+        
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+
+@app.route('/joincolumns/clean',methods =["POST"])
+def joinColumns_clean():
+    try:
+        read_data = request.get_json()
+
+        columns_match1 = read_data["data_set"]["columns_match1"] #เลือกคอลัมน์อะไร
+        columns_match2 = read_data["data_set"]["columns_match2"]
+        delimiter = read_data["data_set"]["delimiter"]
+        column_new = read_data["data_set"]["column_new"]
+        data = read_data["data_set"]["rows"]
+        df = pd.DataFrame(data)
+
+        df[column_new] = df[columns_match1].astype(str) + delimiter + df[columns_match2].astype(str)
+
+        result = df.to_json(orient="records",index=False)
+        parsed = json.loads(result)
+        return json.dumps(parsed,ensure_ascii=False),200
+
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
 
 
 ## Function ที่ 6 Replace Excess Categories with “Other”) 
