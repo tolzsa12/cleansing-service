@@ -150,7 +150,7 @@ def getAllUniqueValue():
         column = read_data["data_set"]["columns_match"]
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
-        df_unique = df[column].unique()
+        df_unique = df[column].dropna().unique()
         data_set = {"column" : df_unique.tolist()}
         return json.dumps(data_set,ensure_ascii=False),200
     
