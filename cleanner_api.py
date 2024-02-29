@@ -18,6 +18,70 @@ app.config['JSON_AS_ASCII'] = False
 @app.route('/')
 def index():
     print("hello, this is first page")
+
+@app.route('/renameheader/check',methods = ["POST"])
+def renameheader_check():
+    try:
+        read_data = request.get_json()
+        column_match = read_data["data_set"]["columns_match"] # ได้คอลัมน์เดียว
+        header_new = read_data["data_set"]["header_new"]
+        headers = read_data["data_set"]["columns"]
+        data = read_data["data_set"]["rows"]
+
+        for header in headers:
+            if (header["dataKey"] == column_match):
+                header["label"] = header_new
+                header["dataKey"] = header_new
+        
+        #headers_df = pd.DataFrame(headers)
+        #เปลี่ยน header เป็น dataframe แล้วก้เปลี่ยนค่าที่มันตรงเอา
+
+        df = pd.DataFrame(data)
+        df.rename(columns= {column_match:header_new},inplace=True)
+        df.insert(0,"st@tus","edit")
+
+        result_dataset = df.to_json(orient="records",index=False)
+
+        #parsed = json.loads(result)
+        return json.dumps({
+            "columns":headers,
+            "rows": json.loads(result_dataset)
+            # เปลี่ยนให้ 3 ที่เลย
+        },ensure_ascii=False),200
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+
+@app.route('/renameheader/clean',methods = ["POST"])
+def renameheader_clean():
+    try:
+        read_data = request.get_json()
+        column_match = read_data["data_set"]["columns_match"] # ได้คอลัมน์เดียว
+        header_new = read_data["data_set"]["header_new"]
+        headers = read_data["data_set"]["columns"]
+        data = read_data["data_set"]["rows"]
+
+        for header in headers:
+            if (header["dataKey"] == column_match):
+                header["label"] = header_new
+                header["dataKey"] = header_new
+        
+        #headers_df = pd.DataFrame(headers)
+        #เปลี่ยน header เป็น dataframe แล้วก้เปลี่ยนค่าที่มันตรงเอา
+
+        df = pd.DataFrame(data)
+        df.rename(columns= {column_match:header_new},inplace=True)
+
+        result_dataset = df.to_json(orient="records",index=False)
+
+        #parsed = json.loads(result)
+        return json.dumps({
+            "columns":headers,
+            "rows": json.loads(result_dataset)
+            # เปลี่ยนให้ 3 ที่เลย
+        },ensure_ascii=False),200
+    except Exception as e:
+        return jsonify({"error":str(e)}),400
+
 @app.route('/removeirrdata/check',methods = ['POST'])
 def removeIrrelevantData_check():
     try:
