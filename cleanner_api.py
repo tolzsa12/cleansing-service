@@ -236,12 +236,15 @@ def editInconsistantData_check():
         #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
         data_select = read_data["data_set"]["data_select"]
         data_change = read_data["data_set"]["data_change"]
-
+        print("Data select is: ",data_select)
+        print("Data change is: ",data_change)
+        print("data before change")
+        #print(df)
         # ลองเปลี่ยนค่า input ที่เข้ามาเป็นตัวเลข
-        if (isint(data_change)):
-            data_change = int(data_change)
-        elif (isfloat(data_change)):
+        if (isfloat(data_change)):
             data_change = float(data_change)
+        elif (isint(data_change)):
+            data_change = int(data_change)
 
         
         df.insert(0,"st@tus",df[columns] == data_select)
@@ -249,6 +252,8 @@ def editInconsistantData_check():
         #df[column].replace(data_select,data_change,inplace=True)
         for col in columns:
             df.replace({col : {data_select: data_change}},inplace=True)
+        print("data after change")
+        print(df)
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
 #        #Respond with a JSON response
@@ -273,14 +278,22 @@ def editInconsistantData_clean():
         data_select = read_data["data_set"]["data_select"]
         data_change = read_data["data_set"]["data_change"]
 
+        #print("Data before change")
+        print(columns)
+        print("Data select is: ",data_select)
+        print("Data change is: ",data_change)
          # ลองเปลี่ยนค่า input ที่เข้ามาเป็นตัวเลข
-        if (isint(data_change)):
-            data_change = int(data_change)
-        elif (isfloat(data_change)):
+        if (isfloat(data_change)):
             data_change = float(data_change)
-        for col in columns:
-            df.replace({col : {data_select: data_change}},inplace=True)
+        elif (isint(data_change)):
+            data_change = int(data_change)
 
+        for col in columns:
+            print("hello")
+            df[col] = df[col].replace(data_select,data_change)
+        
+        #print("Data after change")
+        #print(df)
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
 #        #Respond with a JSON response
@@ -320,8 +333,7 @@ def manageNaValue_check():
             df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
             for col in columns_match:
                 if (is_numeric_dtype(df[col])):
-                    median_value = stat.median(df[col])
-                     #print(mean_value)
+                    median_value = df[col].median()
                     df[col] = df[col].fillna(median_value)
                 else: #ใช้แบบเดียวกับ mean ไปเลย
                     mean_value = df[col].mode()[0]
@@ -395,7 +407,7 @@ def manageNaValue_clean():
         elif order_select == "median":
             for col in columns_match:
                 if (is_numeric_dtype(df[col])):
-                    median_value = stat.median(df[col])
+                    median_value = df[col].median()
                      #print(mean_value)
                     df[col] = df[col].fillna(median_value)
                 else: #ใช้แบบเดียวกับ mean ไปเลย
@@ -444,11 +456,17 @@ def splitColumn_check():
 
         df.insert(0,"st@tus",False)
         if (not is_numeric_dtype(df[column_match])):
-            df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            if df[column_match].str.contains(delimiter).any():
+                df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            else:
+                df[column_1] = df[column_match]
+                df[column_2] = None
+
             col_index = df.columns.tolist().index(column_match)
             df.insert(col_index+1,column_1,df.pop(column_1))
             df.insert(col_index+2,column_2,df.pop(column_2))
             df["st@tus"] = True
+
         df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
 
         
@@ -475,7 +493,12 @@ def splitColumn_clean():
         delimiter = read_data["data_set"]["delimiter"]
 
         if (not is_numeric_dtype(df[column_match])):
-            df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            if df[column_match].str.contains(delimiter).any():
+                df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
+            else:
+                df[column_1] = df[column_match]
+                df[column_2] = None
+
             col_index = df.columns.tolist().index(column_match)
             df.insert(col_index+1,column_1,df.pop(column_1))
             df.insert(col_index+2,column_2,df.pop(column_2))
@@ -502,7 +525,13 @@ def joinColumns_check():
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
 
-        df[column_new] = df[columns_match1].astype(str) + delimiter + df[columns_match2].astype(str)
+        df[columns_match1 + "_string"] = df[columns_match1].dropna().astype(str)
+        df[columns_match2 + "_string"] = df[columns_match2].dropna().astype(str)
+        df[column_new] = df[[columns_match1 + "_string",columns_match2 + "_string"]].apply(lambda x: delimiter.join(x.dropna()), axis=1)
+        # ถ้าสมมุติมันเป็น null + null ผลลัพธ์มันจะออกมาเป็น """sumary_line"""
+        df.loc[df[column_new] == ""] = None
+        #df[column_new] = df[columns_match1].astype(str) + delimiter + df[columns_match2].astype(str)
+        df.drop([columns_match1 + "_string",columns_match2 + "_string"],axis=1,inplace=True)
         df.insert(0,"st@tus","edit")
         
         result = df.to_json(orient="records",index=False)
@@ -524,7 +553,11 @@ def joinColumns_clean():
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
 
-        df[column_new] = df[columns_match1].astype(str) + delimiter + df[columns_match2].astype(str)
+        df[columns_match1 + "_string"] = df[columns_match1].dropna().astype(str)
+        df[columns_match2 + "_string"] = df[columns_match2].dropna().astype(str)
+        df[column_new] = df[[columns_match1 + "_string",columns_match2 + "_string"]].apply(lambda x: delimiter.join(x.dropna()), axis=1)
+        # ถ้าสมมุติมันเป็น null + null ผลลัพธ์มันจะออกมาเป็น """sumary_line"""
+        df.loc[df[column_new] == ""] = None
 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
@@ -809,10 +842,7 @@ def changeOutlier_check():
         else:
             if (isint(order_select)):
                 order_select = int(order_select)
-            elif (isfloat(order_select)):
-                order_select = float(order_select)
-
-            for col in columns_match:
+                for col in columns_match:
                  if (is_numeric_dtype(df[col])):
 
                     Q1 = df[col].quantile(0.25)
@@ -821,9 +851,24 @@ def changeOutlier_check():
 
                     df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
                     df.loc[df[col] < (Q1 - 1.5* IQR),col] = order_select
-                    df.loc[df[col] > (Q3 + 1.5* IQR),col] = order_select                  
+                    df.loc[df[col] > (Q3 + 1.5* IQR),col] = order_select 
+                df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)    
+            elif (isfloat(order_select)):
+                order_select = float(order_select)
 
-        df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)
+                for col in columns_match:
+                 if (is_numeric_dtype(df[col])):
+
+                    Q1 = df[col].quantile(0.25)
+                    Q3 = df[col].quantile(0.75)
+                    IQR = Q3 - Q1
+
+                    df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
+                    df.loc[df[col] < (Q1 - 1.5* IQR),col] = order_select
+                    df.loc[df[col] > (Q3 + 1.5* IQR),col] = order_select 
+                df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)                 
+
+        
 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
@@ -859,7 +904,9 @@ def changeOutlier_clean():
                 order_select = int(order_select)
             elif (isfloat(order_select)):
                 order_select = float(order_select)
-
+                
+                
+                
             for col in columns_match:
                  if (is_numeric_dtype(df[col])):
 
