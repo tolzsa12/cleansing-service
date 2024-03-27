@@ -582,6 +582,7 @@ def replaceExcData_check():
         #df.loc[indices,'A'] = 16
         categories_number  = read_data["data_set"]["categories_number"]
         #categories_number = 5
+        status_index = []
         for col in columns_match:
             if not (is_numeric_dtype(df[col])):
                 values, counts = np.unique(list(df[col].dropna()),return_counts= True)
