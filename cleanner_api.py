@@ -558,6 +558,9 @@ def joinColumns_clean():
         df[column_new] = df[[columns_match1 + "_string",columns_match2 + "_string"]].apply(lambda x: delimiter.join(x.dropna()), axis=1)
         # ถ้าสมมุติมันเป็น null + null ผลลัพธ์มันจะออกมาเป็น """sumary_line"""
         df.loc[df[column_new] == ""] = None
+        df.drop([columns_match1 + "_string",columns_match2 + "_string"],axis=1,inplace=True)
+
+
 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
