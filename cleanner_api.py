@@ -580,14 +580,15 @@ def replaceExcData_check():
         #เก็บค่า index เอาไว้มั้ย แล้วเราค่อยเอามาเพิ่ม + แปลงให้เป็น set ก่อน เพื่อตัดตัวซ้ำทิ้ง
         #indices = [0,1,3,6,10,15]
         #df.loc[indices,'A'] = 16
-        status_index = []
+        categories_number  = read_data["data_set"]["categories_number"]
+        #categories_number = 5
         for col in columns_match:
             if not (is_numeric_dtype(df[col])):
                 values, counts = np.unique(list(df[col].dropna()),return_counts= True)
                 count_sort_ind = np.argsort(-counts)
 
                 list_unique = values[count_sort_ind] 
-                list_keep = list_unique[0:5]  # จะเอากี่อันก็เปลี่ยนเลข 5 เป็นเลขอื่นเอา
+                list_keep = list_unique[0:categories_number]  # จะเอากี่อันก็เปลี่ยนเลข 5 เป็นเลขอื่นเอา
              
                 status_index = status_index + np.flatnonzero(~df[col].isin(list_keep)).tolist()
                 df.loc[~df[col].isin(list_keep),col] = "อื่น ๆ" 
@@ -647,10 +648,10 @@ def removeUnreadableNumbers_check():
         #
         df.insert(0,"st@tus",False)
         for col in columns_match:
-            if (is_object_dtype(df[col])):
-                df.loc[:,col] = df[col].apply(lambda x: float(x) if isfloat(x) else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
-                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: not isinstance(x,(int,float,bool)))
-                #print(col)
+            if (is_object_dtype(df[col])): 
+                df.loc[:,col] = df[col].apply(lambda x: float(x) if (isfloat(x) and pd.notna(x))  else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
+                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: not isinstance(x,(int,float,bool)) and pd.notna(x))
+                
         df.replace({'st@tus':{True: "delete", False : "none"}},inplace=True)
                 
         result = df.to_json(orient="records",index=False)
@@ -673,8 +674,8 @@ def removeUnreadableNumbers_clean():
         for col in columns_match:
             if (is_object_dtype(df[col])):
                 
-                df.loc[:,col] = df[col].apply(lambda x: float(x) if isfloat(x) else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
-                index_delete = df[~df[col].apply(lambda x: isinstance(x,(int,float,bool)))].index
+                df.loc[:,col] = df[col].apply(lambda x: float(x) if (isfloat(x) and pd.notna(x)) else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
+                index_delete = df[df[col].apply(lambda x: not isinstance(x,(int,float,bool)) and pd.notna(x))].index
                 df.drop(index_delete,inplace=True)
 
         result = df.to_json(orient="records",index=False)
@@ -838,6 +839,8 @@ def changeOutlier_check():
                     df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
                     df.loc[df[col] < (Q1 - 1.5* IQR),col] = Q1 - 1.5 * IQR
                     df.loc[df[col] > (Q3 + 1.5* IQR),col] = Q3 + 1.5 * IQR
+            df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)  
+            
 
         else:
             if (isint(order_select)):
@@ -852,7 +855,8 @@ def changeOutlier_check():
                     df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (x <= (Q1 - 1.5* IQR)) | (x >= (Q3 + 1.5 *IQR)))
                     df.loc[df[col] < (Q1 - 1.5* IQR),col] = order_select
                     df.loc[df[col] > (Q3 + 1.5* IQR),col] = order_select 
-                df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)    
+                df.replace({'st@tus':{True: "edit", False : "none"}},inplace=True)   
+
             elif (isfloat(order_select)):
                 order_select = float(order_select)
 
