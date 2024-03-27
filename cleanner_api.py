@@ -617,13 +617,15 @@ def replaceExcData_clean():
         data = read_data["data_set"]["rows"]
         df = pd.DataFrame(data)
         
+
+        categories_number  = read_data["data_set"]["categories_number"]
         #ถ้าสมมุติสร้าง column มาเก็บ true กับ false แล้วสุดท้ายแล้วเอาทุกตัวมา .any() ได้มั้ยอ่ะ
         for col in columns_match:
             if not (is_numeric_dtype(df[col])):
                 values, counts = np.unique(list(df[col].dropna()),return_counts= True)
                 count_sort_ind = np.argsort(-counts)
                 list_unique = values[count_sort_ind] 
-                list_keep = list_unique[0:5]  
+                list_keep = list_unique[0:categories_number]  
                 df.loc[~df[col].isin(list_keep),col] = "อื่น ๆ" 
                
         
