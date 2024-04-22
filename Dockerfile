@@ -17,4 +17,4 @@ EXPOSE 8080
 ENV NAME world
 
 #Run app.py when the container launches
-CMD ["python","cleanner_api.py"]
+CMD ["gunicorn", "-b", "0.0.0.0:8080", "cleanner_api:app"]
