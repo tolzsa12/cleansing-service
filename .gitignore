@@ -3,3 +3,6 @@ cleanner_api_test.py
 cleanner_test.py
 cleanner_test2.py
 cleanner_test3.py
+cleanner_api_for_OOAD.py
+cleanner_api_factory.py
+cleanner_api_abstract_factory.py

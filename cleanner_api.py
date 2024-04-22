@@ -97,7 +97,7 @@ def removeIrrelevantData_check():
         df = pd.DataFrame(data)
         df_left = df.drop(data_match,axis=1)
         df_left.insert(0,"st@tus",True)
-      #  print(df_left)
+     
         df_left.replace({'st@tus':{True:"edit", False: "none"}},inplace=True)
         result = df_left.to_json(orient="records",index=False)
         parsed = json.loads(result)
@@ -152,7 +152,7 @@ def removeDuplicateData_check():
         # add logic here
 
         df = pd.DataFrame(data)
-        print(df.columns.values)
+        
         df.insert(0,"st@tus",df.duplicated())
         df.replace({'st@tus':{True: "delete", False : "none"}},inplace=True)
         result = df.to_json(orient="records",index=False)
@@ -237,10 +237,7 @@ def editInconsistantData_check():
         #ต้องเพิ่ม 2 Keys ลงไปใน json อีก
         data_select = read_data["data_set"]["data_select"]
         data_change = read_data["data_set"]["data_change"]
-        print("Data select is: ",data_select)
-        print("Data change is: ",data_change)
-        print("data before change")
-        #print(df)
+        
         # ลองเปลี่ยนค่า input ที่เข้ามาเป็นตัวเลข
         if (isfloat(data_change)):
             data_change = float(data_change)
@@ -253,8 +250,7 @@ def editInconsistantData_check():
         #df[column].replace(data_select,data_change,inplace=True)
         for col in columns:
             df.replace({col : {data_select: data_change}},inplace=True)
-        print("data after change")
-        print(df)
+       
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
 #        #Respond with a JSON response
@@ -279,10 +275,6 @@ def editInconsistantData_clean():
         data_select = read_data["data_set"]["data_select"]
         data_change = read_data["data_set"]["data_change"]
 
-        #print("Data before change")
-        print(columns)
-        print("Data select is: ",data_select)
-        print("Data change is: ",data_change)
          # ลองเปลี่ยนค่า input ที่เข้ามาเป็นตัวเลข
         if (isfloat(data_change)):
             data_change = float(data_change)
@@ -290,11 +282,10 @@ def editInconsistantData_clean():
             data_change = int(data_change)
 
         for col in columns:
-            print("hello")
+            
             df[col] = df[col].replace(data_select,data_change)
         
-        #print("Data after change")
-        #print(df)
+        
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
 #        #Respond with a JSON response
@@ -322,7 +313,7 @@ def manageNaValue_check():
             for col in columns_match:
                 if (is_numeric_dtype(df[col])):
                     mean_value = df[col].mean()
-                     #print(mean_value)
+                
                     df[col] = df[col].fillna(mean_value)
                 else:
                     mean_value = df[col].mode()[0]
@@ -345,8 +336,7 @@ def manageNaValue_check():
             remove_from_list = []
             for col in columns_match:
                 nan_count = df[col].isna().sum() #นับจำนวน nan ทั้งหมดใน dataframe
-                print(nan_count)
-                print(len(df)) # อันนี้ไว้นับจำนวนทั้งหมด
+                
                 #กรองก่อน เหลืออันไหนที่ทำได้ เราทำให้หมดเลย
                 if(nan_count / len(df) > 0.1):
                     remove_from_list = remove_from_list + [col]
@@ -399,7 +389,7 @@ def manageNaValue_clean():
             for col in columns_match:
                 if (is_numeric_dtype(df[col])):
                     mean_value = df[col].mean()
-                     #print(mean_value)
+                 
                     df[col] = df[col].fillna(mean_value)
                 else:
                     mean_value = df[col].mode()[0]
@@ -409,7 +399,7 @@ def manageNaValue_clean():
             for col in columns_match:
                 if (is_numeric_dtype(df[col])):
                     median_value = df[col].median()
-                     #print(mean_value)
+                    
                     df[col] = df[col].fillna(median_value)
                 else: #ใช้แบบเดียวกับ mean ไปเลย
                     mean_value = df[col].mode()[0]
@@ -417,8 +407,7 @@ def manageNaValue_clean():
         elif order_select == "remove":
              for col in columns_match:
                  nan_count = df[col].isna().sum() # อันนี้เพื่อนับจำนวน  nan ทั้งหมด ในdataframe
-                 print(nan_count)
-                 print(len(df)) # อันนี้ไว้นับจำนวนทั้งหมด
+              
                  if (nan_count / len(df) <= 0.1):
                      df = df[df[col].notna()]
         else:
@@ -656,7 +645,7 @@ def removeUnreadableNumbers_check():
         df.insert(0,"st@tus",False)
         for col in columns_match:
             if (is_object_dtype(df[col])): 
-                print("Hello")
+                
                 df.loc[:,col] = df[col].apply(lambda x: float(x) if (isinstance(x,(int,float,bool)) and x is not None)  else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม error อยู่นี่
                 df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (not isinstance(x,(int,float,bool))) or x is None)
                 
