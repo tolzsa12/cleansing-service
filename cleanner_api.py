@@ -5,6 +5,7 @@ import json
 from pandas.api.types import is_object_dtype, is_numeric_dtype, is_bool_dtype
 import statistics as stat
 import numpy as np
+import math
 
 app = Flask(__name__)
 CORS(app)
@@ -460,7 +461,7 @@ def splitColumn_check():
                 df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
             else:
                 df[column_1] = df[column_match]
-                df[column_2] = None
+                df[column_2] = math.nan
 
             col_index = df.columns.tolist().index(column_match)
             df.insert(col_index+1,column_1,df.pop(column_1))
@@ -497,7 +498,7 @@ def splitColumn_clean():
                 df[[column_1,column_2]] = df[column_match].str.split(delimiter,expand = True, n = 1) #กำหนด n = 1 เพื่อให้แบ่งแค่ทีละ 2 อัน
             else:
                 df[column_1] = df[column_match]
-                df[column_2] = None
+                df[column_2] = math.nan
 
             col_index = df.columns.tolist().index(column_match)
             df.insert(col_index+1,column_1,df.pop(column_1))
@@ -529,7 +530,7 @@ def joinColumns_check():
         df[columns_match2 + "_string"] = df[columns_match2].dropna().astype(str)
         df[column_new] = df[[columns_match1 + "_string",columns_match2 + "_string"]].apply(lambda x: delimiter.join(x.dropna()), axis=1)
         # ถ้าสมมุติมันเป็น null + null ผลลัพธ์มันจะออกมาเป็น """sumary_line"""
-        df.loc[df[column_new] == ""] = None
+        df.loc[df[column_new] == ""] = math.nannan
         #df[column_new] = df[columns_match1].astype(str) + delimiter + df[columns_match2].astype(str)
         df.drop([columns_match1 + "_string",columns_match2 + "_string"],axis=1,inplace=True)
         df.insert(0,"st@tus","edit")
@@ -557,7 +558,10 @@ def joinColumns_clean():
         df[columns_match2 + "_string"] = df[columns_match2].dropna().astype(str)
         df[column_new] = df[[columns_match1 + "_string",columns_match2 + "_string"]].apply(lambda x: delimiter.join(x.dropna()), axis=1)
         # ถ้าสมมุติมันเป็น null + null ผลลัพธ์มันจะออกมาเป็น """sumary_line"""
-        df.loc[df[column_new] == ""] = None
+        df.loc[df[column_new] == ""] = math.nannan
+        df.drop([columns_match1 + "_string",columns_match2 + "_string"],axis=1,inplace=True)
+
+
 
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
@@ -652,8 +656,9 @@ def removeUnreadableNumbers_check():
         df.insert(0,"st@tus",False)
         for col in columns_match:
             if (is_object_dtype(df[col])): 
-                df.loc[:,col] = df[col].apply(lambda x: float(x) if (isfloat(x) and pd.notna(x))  else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
-                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: not isinstance(x,(int,float,bool)) and pd.notna(x))
+                print("Hello")
+                df.loc[:,col] = df[col].apply(lambda x: float(x) if (isinstance(x,(int,float,bool)) and x is not None)  else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม error อยู่นี่
+                df["st@tus"] = df["st@tus"] | df[col].apply(lambda x: (not isinstance(x,(int,float,bool))) or x is None)
                 
         df.replace({'st@tus':{True: "delete", False : "none"}},inplace=True)
                 
@@ -677,10 +682,11 @@ def removeUnreadableNumbers_clean():
         for col in columns_match:
             if (is_object_dtype(df[col])):
                 
-                df.loc[:,col] = df[col].apply(lambda x: float(x) if (isfloat(x) and pd.notna(x)) else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
-                index_delete = df[df[col].apply(lambda x: not isinstance(x,(int,float,bool)) and pd.notna(x))].index
+                df.loc[:,col] = df[col].apply(lambda x: float(x) if (isinstance(x,(int,float,bool)) and x is not None)  else x) # หน้าเท่ากับคือบอกว่าให้มาแทนค่าตัวเดิม
+                index_delete = df[df[col].apply(lambda x: not isinstance(x,(int,float,bool)) or x is None)].index
                 df.drop(index_delete,inplace=True)
-
+        # อาจจะต้องเขียนโน้ตไว้ว่า ถ้าเป็นข้อมูลประเภท number เราจะให้มันไม่ลบ เพราะถือว่าคอลัมน์ทุกตัวมันเป็นตัวเลขอยู่แล้ว
+        # แต่ถ้าเป็น ประเภท object เราจะเขียนไปว่า ไม่รู้ว่าเป็นตัวเลขหรือเปล่า เลยลบไป
         result = df.to_json(orient="records",index=False)
         parsed = json.loads(result)
         return json.dumps(parsed,ensure_ascii=False),200
