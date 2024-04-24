@@ -519,7 +519,7 @@ def joinColumns_check():
         df[columns_match2 + "_string"] = df[columns_match2].dropna().astype(str)
         df[column_new] = df[[columns_match1 + "_string",columns_match2 + "_string"]].apply(lambda x: delimiter.join(x.dropna()), axis=1)
         # ถ้าสมมุติมันเป็น null + null ผลลัพธ์มันจะออกมาเป็น """sumary_line"""
-        df.loc[df[column_new] == ""] = math.nannan
+        df.loc[df[column_new] == ""] = math.nan
         #df[column_new] = df[columns_match1].astype(str) + delimiter + df[columns_match2].astype(str)
         df.drop([columns_match1 + "_string",columns_match2 + "_string"],axis=1,inplace=True)
         df.insert(0,"st@tus","edit")
@@ -547,7 +547,7 @@ def joinColumns_clean():
         df[columns_match2 + "_string"] = df[columns_match2].dropna().astype(str)
         df[column_new] = df[[columns_match1 + "_string",columns_match2 + "_string"]].apply(lambda x: delimiter.join(x.dropna()), axis=1)
         # ถ้าสมมุติมันเป็น null + null ผลลัพธ์มันจะออกมาเป็น """sumary_line"""
-        df.loc[df[column_new] == ""] = math.nannan
+        df.loc[df[column_new] == ""] = math.nan
         df.drop([columns_match1 + "_string",columns_match2 + "_string"],axis=1,inplace=True)
 
 
